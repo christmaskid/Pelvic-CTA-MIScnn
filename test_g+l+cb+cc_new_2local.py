@@ -1,6 +1,6 @@
 # Modified by Alexander Shieh 2021/11/16, Yu-Tong Cheng 2022/06/02
 # Code for testing: original model (global) + small model 1 (local: [0.2*n_slices:0.5*n_slices, 128:384, 128:384]) 
-#                                           + small model 2 (local: [:0.2*n_slices, 128:384, 128:384])
+#                                           + small model 2 (local: [:0.2*n_slices, :, :])
 
 
 #-----------------------------------------------------#
