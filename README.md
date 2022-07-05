@@ -24,7 +24,7 @@ See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MI
 
 Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/mycc3d.py) according to the diagram below.
 * Package used: https://github.com/seung-lab/connected-components-3d.
-![post-processing](https://user-images.githubusercontent.com/66014047/177398797-e0cfd38e-2d86-4da0-9b93-bb6ce8c7e577.png)
+![post-processing](https://user-images.githubusercontent.com/66014047/177400153-e03e5406-a311-489d-a530-df902b756cb7.png)
 
 ## Experiments and Results
 (TO BE UPLOADED)
