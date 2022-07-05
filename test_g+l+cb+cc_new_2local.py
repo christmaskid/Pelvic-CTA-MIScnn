@@ -1,4 +1,8 @@
-# Modified by Alexander Shieh 2021/11/16
+# Modified by Alexander Shieh 2021/11/16, Yu-Tong Cheng 2022/06/02
+# Code for testing: original model (global) + small model 1 (local: [0.2*n_slices:0.5*n_slices, 128:384, 128:384]) 
+#                                           + small model 2 (local: [:0.2*n_slices, 128:384, 128:384])
+
+
 #-----------------------------------------------------#
 #                   Library imports                   #
 #-----------------------------------------------------#
@@ -162,7 +166,7 @@ def simple_dice2(truth, pred, smooth=0.00001):
     intersection = np.sum(truth * pred)
     return (2. * intersection + smooth) / (np.sum(y_true_f) + np.sum(y_pred_f) + smooth)
 
-
+# POST-PROCESSING
 def cc(sample, slices):
     result = ccResult(sample, slices)
     result.remove_part('not-max', percentage=0.15)
@@ -170,6 +174,7 @@ def cc(sample, slices):
     result.set_to_one()
     return result.labels
 
+# PLOTTING IMAGES
 def plot3d(data, dir_name, filename):
     # print("plot3d"+filename,flush=True)  
     # start = timer()
@@ -204,7 +209,9 @@ def plot3d(data, dir_name, filename):
     # print(f"spent {end-start} s.",flush=True)
 
 ##
-for mod in mode.keys():
+
+## TESTING ##
+for mod in mode.keys(): # 'val', 'test'
     print(mode[mod], flush=True)
     mode_dir_name = mode[mod]
     try:
@@ -218,14 +225,14 @@ for mod in mode.keys():
     test_list_local_1 = sample_list_local_1[mod::5]
     test_list_local_2 = sample_list_local_2[mod::5]
     test_list_num  = [mod+k*5 for k in range(10)]
-    print(test_list_num)
+    # print(test_list_num)
 
-    start = timer()
+    # start = timer()
     predictions = model.predict(test_list, return_output=True, activation_output=False)
     predictions_local_1 = model_local_1.predict(test_list_local_1, return_output=True, activation_output=False)
     predictions_local_2 = model_local_2.predict(test_list_local_2, return_output=True, activation_output=False)
-    end = timer()
-    print(f"making {len(test_list)} predictions takes {end-start} s.",flush=True)
+    # end = timer()
+    # print(f"making {len(test_list)} predictions takes {end-start} s.",flush=True)
 
 
     dice_sum_global = 0.0
