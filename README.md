@@ -17,16 +17,14 @@ References:
 * Surface loss: https://github.com/LIVIAETS/boundary-loss/blob/master/keras_loss.py
 
 ## Model Training
-Refer to [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense.py).
+See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense.py).
 
 ## Testing
+See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test_g+l+cb+cc_new_2local.py)
 
 Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/mycc3d.py) according to the diagram below.
+* Package used: https://github.com/seung-lab/connected-components-3d.
 ![post-processing](https://user-images.githubusercontent.com/66014047/177398797-e0cfd38e-2d86-4da0-9b93-bb6ce8c7e577.png)
-
-Package used: https://github.com/seung-lab/connected-components-3d.
-
-(code: TO BE UPLOADED)
 
 ## Experiments and Results
 (TO BE UPLOADED)
