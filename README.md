@@ -29,5 +29,3 @@ Testing is done after post-processing by [mycc3d.py](https://github.com/christma
 ## Experiments and Results
 (TO BE UPLOADED)
 
-## Getting started
-(TO-DO)
