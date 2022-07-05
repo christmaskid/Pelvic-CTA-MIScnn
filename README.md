@@ -22,13 +22,14 @@ Refer to [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MISc
 ## Testing
 
 Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/mycc3d.py) according to the diagram below.
+![post-processing](https://user-images.githubusercontent.com/66014047/177398797-e0cfd38e-2d86-4da0-9b93-bb6ce8c7e577.png)
 
 Package used: https://github.com/seung-lab/connected-components-3d.
 
-(code: TO BE UPDATED)
+(code: TO BE UPLOADED)
 
 ## Experiments and Results
-(TO BE UPDATED)
+(TO BE UPLOADED)
 
 ## Getting started
 (TO-DO)
