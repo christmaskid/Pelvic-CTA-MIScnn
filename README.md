@@ -4,8 +4,8 @@ Code for training model on pelvic CTA images using **dense U-Net** architecture 
 
 ## Generating training data
 Masks are generated from ISP dicom files using [read_segmentation_from_isp_ava.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/read_segmentation_from_isp_ava.py).
-
-The results are represented as 3d coordinates (N * 3 arrays) and saved into csv files.
+* Input: DICOM files from ISP.
+* Output: 3d coordinates (N * 3 arrays) are saved into csv files. The data would be converted to 3d masks in the DATA I/O interface.
 
 ## Data I/O
 
@@ -25,6 +25,11 @@ References:
 See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense.py).
 [train_MIScnn_dense_local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense_local.py) trains the second model transferred from the first one. The second model focuses on a small part of the original sample, i.e., the middle 256 * 256 * 'some range of slices' voxels, in order to perform better on the internal pudendal arteries (IPA).
 
+* Input: 
+  * images: Image dicom files.
+  * labels: Ground truth in csv file format.
+* Output: 3d numpy array.
+
 ## Testing
 See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test_g+l+cb+cc_new_2local.py)
 
@@ -33,6 +38,9 @@ Testing is done after post-processing by [mycc3d.py](https://github.com/christma
 ![post-processing](https://user-images.githubusercontent.com/66014047/177400153-e03e5406-a311-489d-a530-df902b756cb7.png)
 
 (If only one or neither of the local models are trained, delete the part for the not-trained models.)
+
+* Input: images & labels
+* Output: Prediction results (3d numpy array), 3d plots and dice scores.
 
 ## Experiments and Results
 (TO BE UPLOADED)
