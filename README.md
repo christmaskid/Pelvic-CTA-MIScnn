@@ -23,6 +23,7 @@ References:
 
 ## Model Training
 See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense.py).
+[train_MIScnn_dense_local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense_local.py) trains the second model transferred from the first one. The second model focuses on a small part of the original sample, i.e., the middle 256 * 256 * 'some range of slices' voxels, in order to perform better on the internal pudendal arteries (IPA).
 
 ## Testing
 See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test_g+l+cb+cc_new_2local.py)
@@ -31,7 +32,7 @@ Testing is done after post-processing by [mycc3d.py](https://github.com/christma
 * Package used: https://github.com/seung-lab/connected-components-3d.
 ![post-processing](https://user-images.githubusercontent.com/66014047/177400153-e03e5406-a311-489d-a530-df902b756cb7.png)
 
-If only one or neither of the local models are trained, delete the part for the not-trained models.
+(If only one or neither of the local models are trained, delete the part for the not-trained models.)
 
 ## Experiments and Results
 (TO BE UPLOADED)
