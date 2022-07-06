@@ -2,6 +2,11 @@
 
 Code for training model on pelvic CTA images using **dense U-Net** architecture based on package **MIScnn** (https://github.com/frankkramer-lab/MIScnn/) .
 
+## Generating training data
+Masks are generated from ISP dicom files using [read_segmentation_from_isp_ava.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/read_segmentation_from_isp_ava.py).
+
+The results are represented as 3d coordinates (N * 3 arrays) and saved into csv files.
+
 ## Data I/O
 
 Defined in [my_dicom_interface.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/my_dicom_interface.py).
