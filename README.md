@@ -9,30 +9,30 @@ Labels are the result of the manually adjusted ISP segmentation combined with th
 * Input: ISP dicom files
 * Output: 3d coordinates (N * 3 arrays) or 3d masks.
 
-See [my_mpr_to_mask_3d-interp.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/my_mpr_to_mask_3d-interp.py) for methods on transforming contours into solid segmentation.
+See [my_mpr_to_mask_3d-interp.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/pre-processing/my_mpr_to_mask_3d-interp.py) for methods on transforming contours into solid segmentation.
 
 ### Converting files
-Masks are generated from ISP dicom files using [read_segmentation_from_isp_ava.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/read_segmentation_from_isp_ava.py).
+Masks are generated from ISP dicom files using [read_segmentation_from_isp_ava.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/pre-processing/read_segmentation_from_isp_ava.py).
 * Input: DICOM files from ISP.
 * Output: 3d coordinates (N * 3 arrays) are saved into csv files. The data would be converted to 3d masks in the DATA I/O interface.
 
 ## Data I/O
 
-Defined in [my_dicom_interface.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/my_dicom_interface.py).
+Defined in [my_dicom_interface.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train/my_dicom_interface.py).
 
 Revised from https://github.com/frankkramer-lab/MIScnn/blob/master/miscnn/data_loading/interfaces/dicom_io.py.
 
 ## Loss Functions
 
-Defined in [my_losses.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/my_losses.py).
+Defined in [my_losses.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train/my_losses.py).
 
 References: 
 * Most loss functions: https://github.com/frankkramer-lab/MIScnn/blob/master/miscnn/neural_network/metrics.py
 * Surface loss: https://github.com/LIVIAETS/boundary-loss/blob/master/keras_loss.py
 
 ## Model Training
-See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense.py).
-[train_MIScnn_dense_local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train_MIScnn_dense_local.py) trains the second model transferred from the first one. The second model focuses on a small part of the original sample, i.e., the middle 256 * 256 * 'some range of slices' voxels, in order to perform better on the internal pudendal arteries (IPA).
+See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train/train_MIScnn_dense.py).
+[train_MIScnn_dense_local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/train/train_MIScnn_dense_local.py) trains the second model transferred from the first one. The second model focuses on a small part of the original sample, i.e., the middle 256 * 256 * 'some range of slices' voxels, in order to perform better on the internal pudendal arteries (IPA).
 
 * Input: 
   * images: Image dicom files.
@@ -40,9 +40,9 @@ See [train_MIScnn_dense.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/bl
 * Output: 3d numpy array.
 
 ## Testing
-See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test_g+l+cb+cc_new_2local.py)
+See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test/test_g+l+cb+cc_new_2local.py)
 
-Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/mycc3d.py) according to the diagram below.
+Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test/mycc3d.py) according to the diagram below.
 * Package used: https://github.com/seung-lab/connected-components-3d.
 ![post-processing](https://user-images.githubusercontent.com/66014047/177400153-e03e5406-a311-489d-a530-df902b756cb7.png)
 
