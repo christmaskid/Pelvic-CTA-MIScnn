@@ -1,4 +1,5 @@
 # A model training script based on miscnn package.
+# Global
 # Modified by Alexander Shieh 2022/03/03, Yu-Tong Cheng 2022/07/04
 
 #-----------------------------------------------------#
@@ -123,9 +124,6 @@ cb_bd = AlphaScheduler(alpha, update_alpha)
 
 model = Neural_Network(preprocessor=pp, architecture=unet_dense, loss=new_loss_3, metrics=metric_list, batch_queue_size=2, workers=2, learninig_rate=0.00001)
 # model.reset_weights()
-
-model.load("unet_dense_30_v3_suf_best.hdf5")
-
 
 test_list = sample_list[4::5]
 val_list = sample_list[3::5]
