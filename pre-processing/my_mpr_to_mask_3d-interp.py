@@ -1,3 +1,6 @@
+# Original author: Hsiang-Chin Chien
+# Modified by Yu-Tong Cheng: a 3D-interpolation version
+
 import numpy as np
 from numpy import dot, cross
 from numpy.linalg import inv
@@ -159,9 +162,6 @@ def get_contour_list(obj_dict):
 
 def get_original_coordination_and_volume(tissue_path):
     
-    # tissue_path = 'F:/teeth_paper_code/teeth_ref/CVAI-2979/S40340/I10'
-#    centerline_path = 'D:/dicom/S5/S11100/I40'
-     
     coordinates=[]
     deltaA=[]
     
@@ -194,10 +194,6 @@ def get_original_coordination_and_volume(tissue_path):
 def org_coord_trans(xyz_point_set,volume_path):
     
     dx,dy,dz,origin,dim=get_original_coordination_and_volume(volume_path)
-    xyz_point_set[:,0]=xyz_point_set[:,0]#+(dx/2)
-    xyz_point_set[:,1]=xyz_point_set[:,1]#+(dy/2)
-    xyz_point_set[:,2]=xyz_point_set[:,2]#+(dz/2)
-    # print(origin)
     
     xyz_point_set[:,0]=np.asarray((xyz_point_set[:,0]-origin[0])/(dx))+0
     xyz_point_set[:,1]=np.asarray((xyz_point_set[:,1]-origin[1])/(dy))+0
@@ -212,8 +208,6 @@ def mask_gen(trans_point,dim):
     z=dim[2]
 
     point_mask=np.zeros((m,n,z),np.uint8)
-    #print(len(trans_point))
-    #input()
     
     for i in trange(0,len(trans_point)):
         x=int(trans_point[i,1])
@@ -276,14 +270,6 @@ def fill_circles(circ_points, center_point):
         plane_points = np.concatenate((plane_points,new_circ),axis=0)
     return plane_points
 
-def convertArray1To3(sample):
-    length = len(sample)
-    z1 = [sample[i][0] for i in range(length)]
-    x1 = [sample[i][1] for i in range(length)]
-    y1 = [sample[i][2] for i in range(length)]
-    print("Finish converting files.")
-    return [x1,y1,z1]
-
 if __name__ == '__main__':
     
     """
@@ -291,23 +277,20 @@ if __name__ == '__main__':
     from MPR to segmentation annotation
     """
 
-    anno_path = 'S138490\\S5160\\' #'annotation file'
-    first_slice_path = "datasets\\V3_new_30\\0347867_0347867-20220316T050045Z-001\\0347867_0347867\\t0157606419\\0.625mm_CTA\\IM-0001-0521.dcm" #'first ct slice path'
+    anno_path = 'S138490\\S5160\\' # annotation file: folder of dicom files (I10, I20, ..., etc)
+    first_slice_path = "datasets\\V3_new_30\\0347867_0347867-20220316T050045Z-001\\0347867_0347867\\t0157606419\\0.625mm_CTA\\IM-0001-0521.dcm" 
+    #'first ct slice path' is actually the 'last' one in pelvic datasets since the last slice's z-coordination of origin is the lowest.
     ptid = "0347867"
 
     #### Get pixelspacing and dimension
     spx,spy,spz,origin,dim = get_original_coordination_and_volume(first_slice_path)
     print(spx, spy, spz, origin, dim)
     
-    ####
+    #### Get info on files
     cnt, files = explore_AVA_dicom(anno_path)
     print(files)
     targets = ["L_IPA", "R_IPA"]
     Xs_, Ys_, Zs_ = [], [], []
-
-    #fig = plt.figure(figsize=(40, 30), dpi=80)
-    #ax1 = fig.add_subplot(projection='3d')
-    #ax1.set_box_aspect((spx,spy,spz))
 
     for vessel_name , filename in files.items():
         print(vessel_name, filename)
@@ -315,7 +298,7 @@ if __name__ == '__main__':
             continue
 
         results = parse_single_vessel(anno_path+filename)
-        pts, pts_, obj_dict, centerlines = results[0] # 0: inner points, 1: outer points
+        pts, pts_, obj_dict, centerlines = results[0] # 0: inner wall, 1: outer wall
         #print(len(pts))
 
         center_points = np.array(centerlines[0::3])
@@ -324,17 +307,19 @@ if __name__ == '__main__':
 
         obj_id_list, contour_list = get_contour_list(obj_dict)
         #print(len(contour_list))
-        #input()
 
         contours = getDict("contour", contour_list)
         #print(contours[0])
-        #input()
+        # A list of contours. Each element contains a list of 3D coordinations of points on the contour.
         
+        ## Fill each contour with the same amount of points
         circ_contours = []
         for i in trange(len(contours)):
             circ_contours.append(interpolate_circle(contours[i]))
 
         #print(len(circ_contours), len(center_points), len(normalVector), len(tangentVector))
+        
+        ## Interpolate new contours in between
         intp_num = 1
         for n in range(intp_num):
             circ_contours = interpolate_vertical(circ_contours)
@@ -343,10 +328,12 @@ if __name__ == '__main__':
             tangentVector = interpolate_vertical(tangentVector)
         #print(len(circ_contours), len(center_points), len(normalVector), len(tangentVector))
 
+        ## Fill each contour into a solid circle
         plane_contours = []
         for i in trange(len(circ_contours)):
             plane_contours.append(fill_circles(circ_contours[i], center_points[i]))
 
+        ## Get the set of all points
         point_set = plane_contours[0].copy()
         for i in trange(len(plane_contours)):
             point_set = np.concatenate((point_set, plane_contours[i]), axis=0)
@@ -356,8 +343,8 @@ if __name__ == '__main__':
         point_set = org_coord_trans(point_set, first_slice_path)
 
         #### Generate segmentation annotation
-        ds = pydicom.dcmread(anno_path+"I10")
-        ct_size = ds[0x07a1, 0x1007].value
+        #ds = pydicom.dcmread(anno_path+"I10")
+        #ct_size = ds[0x07a1, 0x1007].value
         #print(ct_size)
 
         #print(len(point_set))
@@ -378,6 +365,7 @@ if __name__ == '__main__':
         
     print(len(Xs_), len(Ys_), len(Zs_))
     
+    #### Save all the points
     all_pts = []
     for x,y,z in zip(Xs_, Ys_, Zs_):
         all_pts.append([z,y,x])
@@ -385,7 +373,8 @@ if __name__ == '__main__':
         writer = csv.writer(csvfile)
         writer.writerows(all_pts)
 
-
+    #### Plot the new labels with original ones with plotly
+    ## Plotly does not work on scatter plots with more than 1e6 points, so we plot the overlapped part only.
     colors = ["blue"] * len(Xs_)
     mx = min(Xs_); Mx = max(Xs_)
     my = min(Ys_); My = max(Ys_)
@@ -400,7 +389,7 @@ if __name__ == '__main__':
             and mx < pt[2] and pt[2] < Mx \
             and my < pt[1] and pt[1] < My:
             z.append(pt[0]); x.append(pt[2]); y.append(pt[1])
-    #ax1.scatter(x,y,z,c="red", s=1e-3)
+
     Xs_ += x; Ys_ += y; Zs_ += z
     colors += ["red"] * len(x)
 
