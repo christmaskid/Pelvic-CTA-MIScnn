@@ -399,7 +399,7 @@ def plot3d(in_file, out_file, color='red', s=1e-3):
 
 def plot_combine_3d(in_files, out_file, colors, s=None):
     if len(in_files) != len(colors):
-        raise ValueError("Number of in_files and colors provided are not the same.")
+        raise ValueError("Numbers of in_files and colors provided are not the same.")
     if s is None:
         s = [1e-3 for file in in_files]
 
@@ -416,23 +416,37 @@ def plot_combine_3d(in_files, out_file, colors, s=None):
     ax.view_init(0,0)
     plt.savefig(out_file,dpi=300)
 
+def fileType(directory, target):
+    files = os.listdir(directory)
+    if len(files)==0:
+        return False
+
+    ds = pydicom.dcmread(os.path.join(directory, files[0]))
+    if(ds[0x0008, 0x0008].value[:len(target)]==target):
+        return True
+    return False
+
+def isSeries(directory):
+    return fileType(directory, ['ORIGINAL', 'PRIMARY', 'AXIAL'])
+
+def isAnno(directory):
+    return fileType(directory, ['DERIVED', 'SECONDARY'])
+
 
 if __name__=='__main__':
 
-    GEN_CSV = True # Whether to generate .csv files of segmentation results
-    GEN_SEG_CSV = True  # 'vessels' segmentation
+    GEN_CSV = True      # Whether to generate .csv files of segmentation results
+    GEN_SEG_CSV = True  # generate 'vessels' segmentation
     GEN_IPA_CSV = True  # convert IPA contours to segmentation
     GEN_GRAPH = True    # Whether to generate graphs of segmentation
-    GEN_DATASET = True  # Whether to save files to the dataset with specified 
+    GEN_DATASET = True  # Whether to save files to the dataset of specified folder path
 
     dir_name = input("Enter directory of series: ")
-    # a directory with series copied from ISP
-    # Series name: 'S'+(a number), containing two folders - 0.625mm CTA (Primary) & AVA results (Derived)
 
     ## Generate dataset ##
     if GEN_DATASET:
         if GEN_CSV == False:
-            print(f"Illegal setting. GEN_CSV must be True if GEN_DATASET is True.")
+            print(f"Illegal setting. GEN_CSV must be set to True while GEN_DATASET is True.")
             sys.exit()
         destination = input("Enter directory of file saving destination (dataset): ")
         if not os.path.exists(destination):
@@ -443,11 +457,28 @@ if __name__=='__main__':
         dir2 = os.path.join(dir_name, dir2)
         subdirs = [dir1 for dir1 in os.listdir(dir2) if len(dir1.split('.'))==1 and dir1[0]=='S']
         print(dir2, subdirs)
+        if len(subdirs)!=2:
+            raise ValueError(f"The number of subdirectories in {dir2} is {len(subdirs)}, but the required number is 2.")
 
-        series_path = os.path.join(dir2, subdirs[0])
-        anno_path = os.path.join(dir2, subdirs[1])
-        if len(anno_path) < len(series_path):
-            tmp = anno_path; anno_path = series_path; series_path = tmp # swap
+        series_path, anno_path = None, None
+        for i in range(2):
+            if(isSeries(os.path.join(dir2, subdirs[i]))):
+                if series_path is None:
+                    series_path = subdirs[i]
+                else:
+                    raise Exception(f"More than 2 image series: {series_path}, {subdirs[i]} in {dir2}.")
+            elif(isAnno(os.path.join(dir2, subdirs[i]))):
+                if anno_path is None:
+                    anno_path = subdirs[i]
+                else:
+                    raise Exception(f"More than 2 annotations: {anno_path}, {subdirs[i]} in {dir2}.")
+
+        if series_path is None:
+            raise Exception(f"No image series path is found in {dir2}.")
+        if anno_path is None:
+            raise Exception(f"No annotation path is found in {dir2}.")
+        series_path = os.path.join(dir2, series_path)
+        anno_path = os.path.join(dir2, anno_path)
         print('image:', series_path)
         print('label:', anno_path)
 
@@ -468,7 +499,7 @@ if __name__=='__main__':
                             dim1 = ds1[0x07a1, 0x1007].value
                             print(dim1)
                             raw_bytes2 = ds1[0x07a1, 0x1009].value[:]
-                            #decode_file(dim1, raw_bytes2, SEG_FILENAME)
+                            decode_file(dim1, raw_bytes2, SEG_FILENAME)
                     except:
                         continue
 
