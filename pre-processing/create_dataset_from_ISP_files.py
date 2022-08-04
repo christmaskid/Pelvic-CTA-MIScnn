@@ -258,7 +258,7 @@ def getDictArr(key, clist):
 def interpolate_vertical(ori_array):
     intp_list = [np.array(ori_array[0])]
 
-    for i in trange(len(ori_array)-1):
+    for i in range(len(ori_array)-1):
         plane_1 = np.array(ori_array[i])
         plane_2 = np.array(ori_array[i+1])
         new_plane = (plane_1 + plane_2)/2
@@ -332,7 +332,7 @@ def extract_contours(anno_path, first_slice_path, ptid, targets, out_file):
         contours = getDict("contour", contour_list)
         
         circ_contours = []
-        for i in trange(len(contours)):
+        for i in range(len(contours)):
             circ_contours.append(interpolate_circle(contours[i]))
 
         intp_num = 1
@@ -343,7 +343,7 @@ def extract_contours(anno_path, first_slice_path, ptid, targets, out_file):
             tangentVector = interpolate_vertical(tangentVector)
 
         plane_contours = []
-        for i in trange(len(circ_contours)):
+        for i in range(len(circ_contours)):
             plane_contours.append(fill_circles(circ_contours[i], center_points[i]))
 
         point_set = plane_contours[0].copy()
@@ -357,7 +357,7 @@ def extract_contours(anno_path, first_slice_path, ptid, targets, out_file):
         point_set = list(set((int(pt[0]),int(pt[1]),int(pt[2])) for pt in point_set))
 
         Xs, Ys, Zs = [], [], []
-        for i in trange(len(point_set)):
+        for i in range(len(point_set)):
             x=point_set[i][0]
             y=point_set[i][1]
             z=point_set[i][2]
@@ -367,19 +367,28 @@ def extract_contours(anno_path, first_slice_path, ptid, targets, out_file):
         Ys_ += Ys
         Zs_ += Zs
         
-    print(len(Xs_), len(Ys_), len(Zs_))
+    #print(len(Xs_), len(Ys_), len(Zs_))
     
-    all_pts = sorted([[z,y,x] for x,y,z in zip(Xs_, Ys_, Zs_)])
-    with open(out_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(all_pts)
+    if len(Xs_)==0:
+        print(f"No file is found in {anno_path} for target \'{targets}\'.")
+        return
+    else:
+        print(f"{len(Xs_)} points have been generated and saved to {out_file}.")
+        all_pts = sorted([[z,y,x] for x,y,z in zip(Xs_, Ys_, Zs_)])
+        with open(out_file, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(all_pts)
 
 def rename_dicom(path):
     for fn in os.listdir(path):
-        new_fn = 'IM-0001-'+fn[1:-1].zfill(4)+'.dcm'
-        os.rename(os.path.join(path,fn), os.path.join(path, new_fn))
+        if fn=='DIRFILE':
+            os.remove(os.path.join(path, fn))
+        else:
+            new_fn = 'IM-0001-'+fn[1:-1].zfill(4)+'.dcm'
+            os.rename(os.path.join(path,fn), os.path.join(path, new_fn))
 
 def convertArray1To3(sample):
+    print('converting sample...', end='\r')
     length = len(sample)
     z1 = np.array([sample[i][0] for i in range(length)])
     x1 = np.array([sample[i][1] for i in range(length)])
@@ -387,15 +396,20 @@ def convertArray1To3(sample):
     return [x1,y1,z1]
 
 def plot3d(in_file, out_file, color='red', s=1e-3):
+    if not os.path.exists(in_file):
+        print(f"File {in_file} does not exist. Please check.")
+        return
     seg = pd.read_csv(in_file, header=None).to_numpy()
     data = convertArray1To3(seg)
 
+    print(f"plotting 3d to {out_file}...", end='\r')
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(projection='3d')
     ax.scatter(data[0],data[1],data[2],c=color, s=s)
     ax.set_box_aspect((0.429688, 0.429688, 0.625))
     ax.view_init(0,0)
     plt.savefig(out_file,dpi=300)
+    print(f"The scatter plot is saved to {out_file}.")
 
 def plot_combine_3d(in_files, out_file, colors, s=None):
     if len(in_files) != len(colors):
@@ -408,6 +422,9 @@ def plot_combine_3d(in_files, out_file, colors, s=None):
 
     for i in range(len(in_files)):
         in_file = in_files[i]
+        if not os.path.exists(in_file):
+            print(f"File {in_file} does not exist. Please check.")
+            return
         seg = pd.read_csv(in_file, header=None).to_numpy()
         data = convertArray1To3(seg)
         ax.scatter(data[0],data[1],data[2],c=colors[i],s=s[i])
@@ -433,11 +450,68 @@ def isAnno(directory):
     return fileType(directory, ['DERIVED', 'SECONDARY'])
 
 
+def explore_AVA_dicom_centerlines(anno_path, first_slice_path, ptid, targets, out_file):
+    
+    #### Get pixelspacing and dimension
+    spx,spy,spz,origin,dim = get_original_coordination_and_volume(first_slice_path)
+    print(spx, spy, spz, origin, dim)
+    
+    ####
+    cnt, files = explore_AVA_dicom(anno_path)
+    print(files)
+    Xs_, Ys_, Zs_ = [], [], []
+
+    for vessel_name , filename in files.items():
+        #print(vessel_name, filename)
+        if vessel_name not in targets:
+            continue
+
+        ds = dcmread(os.path.join(anno_path, filename))
+        raw_list = ds[0x07a1, 0x1012].value[:]
+        new_list = []
+        for i in range( int(len(raw_list)/3) ):
+            new_list.append([raw_list[3*i], raw_list[3*i+1], raw_list[3*i+2]])
+        center_points = new_list[0::3]
+        normal_vectors = new_list[1::3]
+
+        point_set = np.array(center_points)
+
+        #### Calculate dicom coordinate to CT coordinate
+        point_set = org_coord_trans(point_set, first_slice_path)
+
+        #print(len(point_set))
+        point_set = list(set((int(pt[0]),int(pt[1]),int(pt[2])) for pt in point_set))
+
+        Xs, Ys, Zs = [], [], []
+        for i in range(len(point_set)):
+            x=point_set[i][0]
+            y=point_set[i][1]
+            z=point_set[i][2]
+            Xs.append(x); Ys.append(y); Zs.append(z)
+
+        Xs_ += Xs
+        Ys_ += Ys
+        Zs_ += Zs
+        
+    #print(len(Xs_), len(Ys_), len(Zs_))
+    
+    if len(Xs_)==0:
+        print(f"No file is found in {anno_path} for target \'{targets}\'.")
+        return
+    else:
+        print(f"{len(Xs_)} points have been generated and saved to {out_file}.")
+        all_pts = sorted([[z,y,x] for x,y,z in zip(Xs_, Ys_, Zs_)])
+        with open(out_file, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(all_pts)
+
+
 if __name__=='__main__':
 
     GEN_CSV = True      # Whether to generate .csv files of segmentation results
     GEN_SEG_CSV = True  # generate 'vessels' segmentation
     GEN_IPA_CSV = True  # convert IPA contours to segmentation
+    GEN_CTP_CSV = False # Generate centerlines (centerpoints)
     GEN_GRAPH = True    # Whether to generate graphs of segmentation
     GEN_DATASET = True  # Whether to save files to the dataset of specified folder path
 
@@ -452,9 +526,13 @@ if __name__=='__main__':
         if not os.path.exists(destination):
             os.mkdir(destination)
 
+    fn_id_list = []
+
     ## Parsing files ##
-    for dir2 in os.listdir(dir_name):
-        dir2 = os.path.join(dir_name, dir2)
+    list_of_data = sorted(os.listdir(dir_name))
+    for dirc in list_of_data:
+        print("="*50)
+        dir2 = os.path.join(dir_name, dirc)
         subdirs = [dir1 for dir1 in os.listdir(dir2) if len(dir1.split('.'))==1 and dir1[0]=='S']
         print(dir2, subdirs)
         if len(subdirs)!=2:
@@ -484,10 +562,14 @@ if __name__=='__main__':
 
         first_file = pydicom.dcmread(os.path.join(anno_path, os.listdir(anno_path)[0]))
         ptid = first_file[0x0010, 0x0020].value
-        print(ptid)
+        pc_data = first_file[0x0008, 0x0020].value
+        print(ptid, pc_data)
+        key_id = ptid+'_'+pc_data
+        fn_id_list.append([dirc, ptid+' ('+pc_data+')'])
 
-        SEG_FILENAME = ptid+'_seg_new'+'.csv'
-        IPA_FILENAME = ptid+'_seg_new_IPA'+'.csv'
+        SEG_FILENAME = key_id+'_seg_new'+'.csv'
+        IPA_FILENAME = key_id+'_seg_new_IPA'+'.csv'
+        CTP_FILENAME = key_id+'_ctp.csv'
 
         if GEN_CSV:
             ## Parse files and get 'vessels' segmentation ##
@@ -503,19 +585,27 @@ if __name__=='__main__':
                     except:
                         continue
 
+            last_slice = os.path.join(series_path,"I"+str(len(os.listdir(series_path))-1)+"0")
+            print(last_slice)
+
             ## Extract contours and convert them to segmentation ##
             if GEN_IPA_CSV:
-                last_slice = os.path.join(series_path,"I"+str(len(os.listdir(series_path))-1)+"0")
-                print(last_slice)
                 extract_contours(anno_path, last_slice, ptid, ["L_IPA", "R_IPA", "L-IPA", "R-IPA"], IPA_FILENAME)
+
+            ## Extract centerpoints ##
+            if GEN_CTP_CSV:
+                explore_AVA_dicom_centerlines(anno_path, last_slice, ptid, ["L_IPA", "R_IPA", "L-IPA", "R-IPA"], CTP_FILENAME)
 
         if GEN_DATASET:
             if len(os.listdir(destination))==0:
                 last_num = 1
             else:
                 last_num = int(sorted(os.listdir(destination))[-1].split("_")[-1])+1
+            code_name = 'CVAI_Train_'+str(last_num).zfill(2)
+            fn_id_list[-1].append(code_name)
+            print(f"Saving to dataset {code_name} ...", end='\r')
 
-            folder_name = os.path.join(destination, 'CVAI_Train_'+str(last_num).zfill(2))
+            folder_name = os.path.join(destination, code_name)
             seg_folder = os.path.join(folder_name, 'vessels.'+ptid)
             IPA_folder = os.path.join(folder_name, 'IPA.'+ptid)
             os.mkdir(folder_name)
@@ -528,11 +618,22 @@ if __name__=='__main__':
 
             ## Rename and clean up dicom image files
             rename_dicom(os.path.join(folder_name, '0.625mm CTA'))
-            if os.path.exists(os.path.join(folder_name, 'DIRFILE')):
-                os.remove(os.path.join(folder_name, 'DIRFILE'))
 
         ## Generate graphs of ground truth ##
         if GEN_GRAPH:
-            plot3d(SEG_FILENAME, SEG_FILENAME.split(".")[0]+'.jpg', color='red', s=1e-4)
-            plot3d(IPA_FILENAME, IPA_FILENAME.split(".")[0]+'.jpg', color='blue', s=1e-3)
-            plot_combine_3d([SEG_FILENAME, IPA_FILENAME], ptid+'_seg_cb.jpg', colors=['red', 'blue'], s=[1e-4, 1e-3])
+            if GEN_SEG_CSV == True:
+                plot3d(SEG_FILENAME, SEG_FILENAME.split(".")[0]+'.jpg', color='red', s=1e-4)
+            if GEN_IPA_CSV == True:
+                plot3d(IPA_FILENAME, IPA_FILENAME.split(".")[0]+'.jpg', color='blue', s=1e-3)
+            if GEN_SEG_CSV == True and GEN_IPA_CSV == True:
+                plot_combine_3d([SEG_FILENAME, IPA_FILENAME], key_id+'_seg_cb.jpg', colors=['red', 'blue'], s=[1e-4, 1e-3])
+            if GEN_CTP_CSV == True:
+                plot3d(CTP_FILENAME, CTP_FILENAME.split(".")[0]+'.jpg', color='green', s=1)
+
+    ## Print out patient id for each file ##
+    print("="*50)
+    fn_id_list.sort()
+    for item in fn_id_list:
+        for n in item:
+            print(f"{n}\t",end='')
+        print(end='\n')
