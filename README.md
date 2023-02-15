@@ -2,6 +2,8 @@
 
 Code for training model on pelvic CTA images using **dense U-Net** architecture based on package **MIScnn** (https://github.com/frankkramer-lab/MIScnn/) .
 
+More info and current progress: see https://drive.google.com/file/d/1M7qRDX4sSol-yzskj3qJp4TyOqgoI0-9/view?usp=sharing.
+
 ## Generating training data
 
 ### Pre-processing on labeling
@@ -44,7 +46,9 @@ See [test_g+l+cb+cc_new_2local.py](https://github.com/christmaskid/Pelvic-CTA-MI
 
 Testing is done after post-processing by [mycc3d.py](https://github.com/christmaskid/Pelvic-CTA-MIScnn/blob/main/test/mycc3d.py) according to the diagram below.
 * Package used: https://github.com/seung-lab/connected-components-3d.
-![post-processing](https://user-images.githubusercontent.com/66014047/177400153-e03e5406-a311-489d-a530-df902b756cb7.png)
+
+![fig-1](https://user-images.githubusercontent.com/66014047/218907938-331bc0c3-29c9-49ba-80dd-e763c628e3f8.png)
+
 
 (If only one or neither of the local models are trained, delete the part for the not-trained models.)
 
@@ -52,5 +56,11 @@ Testing is done after post-processing by [mycc3d.py](https://github.com/christma
 * Output: Prediction results (3d numpy array), 3d plots and dice scores.
 
 ## Experiments and Results
-(TO BE UPLOADED)
+
+
+
+| Model      | Global | Local  | Combined | Post-processed |
+|------------|--------|--------|----------|----------------|
+| Dice score | 0.8443 | 0.7250 | 0.8464   | 0.8781         |
+
 
