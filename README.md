@@ -2,7 +2,7 @@
 
 Code for training model on pelvic CTA images using **dense U-Net** architecture based on package **MIScnn** (https://github.com/frankkramer-lab/MIScnn/) .
 
-More info and current progress: see https://drive.google.com/file/d/1M7qRDX4sSol-yzskj3qJp4TyOqgoI0-9/view?usp=sharing.
+More info and current progress: see [https://drive.google.com/file/d/1M7qRDX4sSol-yzskj3qJp4TyOqgoI0-9/view?usp=sharing.](https://drive.google.com/file/d/1rER56bN5z1I6kof7BO9iDw1QG692X4bC/view?usp=sharing)
 
 ## Generating training data
 
