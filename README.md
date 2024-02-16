@@ -64,3 +64,6 @@ Testing is done after post-processing by [mycc3d.py](https://github.com/christma
 | Dice score | 0.8443 | 0.7250 | 0.8464   | 0.8781         |
 
 
+## Citation
+Abstract No. 148 Detailed Segmentation of Pelvic Arteries in Pelvic CT Angiography with Deep Learning
+A. Shieh, Y. Cheng, W. Lee, T. Wang. Journal of Vascular and Interventional Radiology, VOLUME 34, ISSUE 3, SUPPLEMENT , S69, MARCH 2023. DOI:https://doi.org/10.1016/j.jvir.2022.12.201
